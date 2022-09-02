@@ -1,0 +1,108 @@
+import streamlit as st
+from streamlit_option_menu import option_menu
+from datetime import datetime
+import pandas as pd
+import plotly.express as px
+st.write('# Avocado Prices dashboard')  #st.title('Avocado Prices dashboard')
+st.markdown('''
+This is a dashboard showing the *average prices* of different types of :avocado:  
+Data source: [Kaggle](https://www.kaggle.com/datasets/timmate/avocado-prices-2020)
+''')
+st.header('Summary statistics')
+
+
+# 1=sidebar menu, 2=horizontal menu, 3=horizontal menu w/ custom menu
+EXAMPLE_NO = 1
+
+
+def streamlit_menu(example=1):
+    if example == 1:
+        # 1. as sidebar menu
+        with st.sidebar:
+            selected = option_menu(
+                menu_title="Main Menu",  # required
+                options=["Home", "Projects", "Contact"],  # required
+                icons=["house", "book", "envelope"],  # optional
+                menu_icon="cast",  # optional
+                default_index=0,  # optional
+            )
+        return selected
+
+    if example == 2:
+        # 2. horizontal menu w/o custom style
+        selected = option_menu(
+            menu_title=None,  # required
+            options=["Home", "Projects", "Contact"],  # required
+            icons=["house", "book", "envelope"],  # optional
+            menu_icon="cast",  # optional
+            default_index=0,  # optional
+            orientation="horizontal",
+        )
+        return selected
+
+    if example == 3:
+        # 2. horizontal menu with custom style
+        selected = option_menu(
+            menu_title=None,  # required
+            options=["Home", "Projects", "Contact"],  # required
+            icons=["house", "book", "envelope"],  # optional
+            menu_icon="cast",  # optional
+            default_index=0,  # optional
+            orientation="horizontal",
+            styles={
+                "container": {"padding": "0!important", "background-color": "#fafafa"},
+                "icon": {"color": "orange", "font-size": "25px"},
+                "nav-link": {
+                    "font-size": "25px",
+                    "text-align": "left",
+                    "margin": "0px",
+                    "--hover-color": "#eee",
+                },
+                "nav-link-selected": {"background-color": "green"},
+            },
+        )
+        return selected
+
+
+selected = streamlit_menu(example=EXAMPLE_NO)
+
+if selected == "Home":
+    st.title(f"You have selected {selected}")
+if selected == "Projects":
+    st.title(f"You have selected {selected}")
+if selected == "Contact":
+    st.title(f"You have selected {selected}")
+
+
+
+
+
+#@st.cache
+path = r'C:\Users\Alfred\Desktop\avocado-updated-2020.csv'
+def load_data(path):
+    dataset = pd.read_csv(path)
+    return dataset
+
+avocado = load_data(r'C:\Users\Alfred\Desktop\avocado-updated-2020.csv')
+avocado_stats = avocado.groupby('type')['average_price'].mean()
+st.dataframe(avocado_stats)
+
+st.header('Line chart by geographies')
+
+with st.form('line_chart'):
+    selected_geography = st.selectbox(label='Geography', options=avocado['geography'].unique())
+    submitted = st.form_submit_button('Submit')
+    if submitted:
+        filtered_avocado = avocado[avocado['geography'] == selected_geography]
+        line_fig = px.line(filtered_avocado,
+                           x='date', y='average_price',
+                           color='type',
+                           title=f'Avocado Prices in {selected_geography}')
+        st.plotly_chart(line_fig)
+
+with st.sidebar:
+    st.subheader('About')
+    st.markdown('This dashboard is made by **Alfred_Bartholomew** to show the prices of *Avocado*, using **Streamlit**')
+st.sidebar.image('https://streamlit.io/images/brand/streamlit-mark-color.png', width=50)
+
+
